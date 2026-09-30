@@ -1,6 +1,9 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import '../theme/glass_theme.dart';
 
+/// A chart in a sheet of real liquid glass — title, subtitle and the chart
+/// itself all sit on the refracting surface.
 class ChartCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -15,36 +18,30 @@ class ChartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.2)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface,
-              ),
+    return GlassCard(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: GlassPalette.textPrimary,
             ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              fontSize: 11.5,
+              color: GlassPalette.textTertiary,
             ),
-            const SizedBox(height: 20),
-            Expanded(child: child),
-          ],
-        ),
+          ),
+          const SizedBox(height: 18),
+          Expanded(child: child),
+        ],
       ),
     );
   }
@@ -74,13 +71,13 @@ class _PieChartDistributionWidgetState extends State<PieChartDistributionWidget>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     if (widget.dataMap.isEmpty) {
-      return Center(
+      return const Center(
         child: Text(
           'No data available',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+          style: TextStyle(
+            fontSize: 13,
+            color: GlassPalette.textTertiary,
           ),
         ),
       );
@@ -159,8 +156,10 @@ class _PieChartDistributionWidgetState extends State<PieChartDistributionWidget>
                     Expanded(
                       child: Text(
                         entry.key,
-                        style: theme.textTheme.bodySmall?.copyWith(
+                        style: const TextStyle(
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w500,
+                          color: GlassPalette.textSecondary,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -168,9 +167,10 @@ class _PieChartDistributionWidgetState extends State<PieChartDistributionWidget>
                     const SizedBox(width: 4),
                     Text(
                       '${entry.value}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                        color: GlassPalette.indigo,
                       ),
                     ),
                   ],
@@ -191,13 +191,13 @@ class BarChartTopModelsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     if (dataMap.isEmpty) {
-      return Center(
+      return const Center(
         child: Text(
           'No model telemetry recorded',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+          style: TextStyle(
+            fontSize: 13,
+            color: GlassPalette.textTertiary,
           ),
         ),
       );
@@ -221,8 +221,8 @@ class BarChartTopModelsWidget extends StatelessWidget {
               final modelName = topEntries[group.x.toInt()].key;
               return BarTooltipItem(
                 '$modelName\n${rod.toY.toInt()} devices',
-                TextStyle(
-                  color: theme.colorScheme.onPrimary,
+                const TextStyle(
+                  color: GlassPalette.textPrimary,
                   fontWeight: FontWeight.bold,
                 ),
               );
@@ -243,7 +243,10 @@ class BarChartTopModelsWidget extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Text(
                     shortName,
-                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 10),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: GlassPalette.textTertiary,
+                    ),
                   ),
                 );
               },
@@ -262,10 +265,10 @@ class BarChartTopModelsWidget extends StatelessWidget {
             barRods: [
               BarChartRodData(
                 toY: entry.value.toDouble(),
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   colors: [
-                    theme.colorScheme.primary,
-                    theme.colorScheme.tertiary,
+                    GlassPalette.indigo,
+                    GlassPalette.violet,
                   ],
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,

@@ -1,13 +1,21 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'providers/admin_providers.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_navigation_screen.dart';
+import 'theme/glass_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
+  // Compile every glass program up front, so the first lens on screen —
+  // the login card, the app bar — is glass on its very first frame
+  // instead of frosted for a moment while the shaders warm up.
+  await LiquidGlassShaders.ensureLoaded();
+
   runApp(
     const ProviderScope(
       child: MediaRescueAdminApp(),
@@ -20,28 +28,60 @@ class MediaRescueAdminApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Dark Theme definition according to M3 design specs
-    final darkTheme = ThemeData(
+    // Dark theme tuned for a liquid-glass UI: transparent scaffolds (the
+    // glass backdrop is painted by each screen), no Material splash
+    // (glass does the reacting), iOS page transitions, and transparent
+    // snack/dialog/sheet surfaces so their glass shows through.
+    final ThemeData darkTheme = ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF6366F1), // Modern Indigo seed
+        seedColor: GlassPalette.indigo,
         brightness: Brightness.dark,
-        surface: const Color(0xFF12131C),
+        surface: GlassPalette.backdropMid,
         surfaceContainerHighest: const Color(0xFF1E202E),
       ),
-      scaffoldBackgroundColor: const Color(0xFF0D0E15),
-      cardTheme: CardThemeData(
-        color: const Color(0xFF161824),
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-      ),
+      scaffoldBackgroundColor: Colors.transparent,
+      canvasColor: Colors.transparent,
+      splashFactory: NoSplash.splashFactory,
+      highlightColor: Colors.transparent,
+      hoverColor: Colors.transparent,
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF12131C),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
+      textSelectionTheme: const TextSelectionThemeData(
+        cursorColor: GlassPalette.indigo,
+        selectionColor: Color(0x596366F1),
+        selectionHandleColor: GlassPalette.indigo,
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: GlassPalette.indigo,
+      ),
+      iconTheme: const IconThemeData(color: GlassPalette.textPrimary),
+      dialogTheme: const DialogThemeData(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        modalBackgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
     );
 
@@ -80,26 +120,13 @@ class AuthGuardWrapper extends ConsumerWidget {
               return const LoginScreen();
             }
           },
-          loading: () => const Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Verifying admin allowlist credentials...'),
-                ],
-              ),
-            ),
+          loading: () => const GlassLoadingScreen(
+            message: 'Verifying admin allowlist credentials…',
           ),
           error: (err, stack) => const LoginScreen(),
         );
       },
-      loading: () => const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      ),
+      loading: () => const GlassLoadingScreen(),
       error: (err, stack) => const LoginScreen(),
     );
   }

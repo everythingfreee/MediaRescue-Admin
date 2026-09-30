@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/installation_model.dart';
+import '../theme/glass_theme.dart';
 
+/// One device in the telemetry list, drawn as a sheet of lite glass.
+///
+/// Lite glass — not a lens — on purpose: this row repeats down a long,
+/// scrolling list, and the shader-free material (frost, tint, lit rim)
+/// gives the same look at no backdrop read per row, and none of the
+/// scroll-layer quirks a lens inside a scrollable runs into.
 class DeviceCard extends StatelessWidget {
   final InstallationModel installation;
   final VoidCallback onTap;
@@ -31,184 +38,61 @@ class DeviceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isOutdated = _isOldVersion(installation.appVersion);
+    final bool isOutdated = _isOldVersion(installation.appVersion);
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      elevation: isSelected ? 4 : 1.5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(
-          color: isSelected
-              ? theme.colorScheme.primary
-              : theme.colorScheme.outline.withValues(alpha: 0.15),
-          width: isSelected ? 1.8 : 1.0,
-        ),
-      ),
-      color: isSelected
-          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.2)
-          : theme.cardTheme.color,
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          if (isSelectionMode) {
-            onSelectChanged?.call(!isSelected);
-          } else {
-            onTap();
-          }
-        },
-        onLongPress: () {
-          HapticFeedback.mediumImpact();
-          onLongPress?.call();
-        },
-        borderRadius: BorderRadius.circular(14),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      child: GlassLiteSurface(
+        shape: GlassStyles.liteCardShape,
+        color: isSelected ? GlassTints.selected : GlassTints.card,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            if (isSelectionMode) {
+              onSelectChanged?.call(!isSelected);
+            } else {
+              onTap();
+            }
+          },
+          onLongPress: () {
+            HapticFeedback.mediumImpact();
+            onLongPress?.call();
+          },
           child: Row(
-            children: [
-              // Selection Checkbox or Device Icon
+            children: <Widget>[
               if (isSelectionMode)
                 Padding(
                   padding: const EdgeInsets.only(right: 12.0),
-                  child: Checkbox(
+                  child: GlassCheckbox(
                     value: isSelected,
-                    onChanged: (val) {
-                      HapticFeedback.selectionClick();
-                      onSelectChanged?.call(val);
-                    },
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
+                    onChanged: onSelectChanged,
                   ),
                 )
               else
-                Container(
-                  width: 48,
-                  height: 48,
-                  margin: const EdgeInsets.only(right: 14.0),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.phone_android_rounded,
-                    color: theme.colorScheme.primary,
-                    size: 26,
+                const GlassLiteSurface(
+                  shape: GlassStyles.liteChipShape,
+                  color: GlassTints.selected,
+                  margin: EdgeInsets.only(right: 14),
+                  child: SizedBox(
+                    width: 46,
+                    height: 46,
+                    child: Center(
+                      child: Icon(
+                        Icons.phone_android_rounded,
+                        color: GlassPalette.textPrimary,
+                        size: 24,
+                      ),
+                    ),
                   ),
                 ),
-
-              // Device Metadata
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            installation.deviceModel,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(left: 8),
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: installation.hasFcmToken
-                                ? Colors.greenAccent.shade400
-                                : Colors.grey.shade600,
-                            boxShadow: installation.hasFcmToken
-                                ? [
-                                    BoxShadow(
-                                      color: Colors.greenAccent.withValues(alpha: 0.5),
-                                      blurRadius: 4,
-                                      spreadRadius: 1,
-                                    )
-                                  ]
-                                : null,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            installation.androidVersion,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: isOutdated
-                                ? Colors.amber.shade900.withValues(alpha: 0.3)
-                                : theme.colorScheme.primary.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
-                            border: isOutdated
-                                ? Border.all(color: Colors.amber.shade700, width: 0.8)
-                                : null,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (isOutdated) ...[
-                                Icon(Icons.warning_amber_rounded, size: 12, color: Colors.amber.shade400),
-                                const SizedBox(width: 4),
-                              ],
-                              Text(
-                                'v${installation.appVersion}',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: isOutdated ? Colors.amber.shade300 : theme.colorScheme.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.access_time_rounded,
-                          size: 13,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Last seen ${installation.lastSeenFormatted}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              Expanded(child: _DeviceDetails(installation: installation, isOutdated: isOutdated)),
               const SizedBox(width: 8),
               if (!isSelectionMode)
-                Icon(
+                const Icon(
                   Icons.chevron_right_rounded,
-                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  color: GlassPalette.textTertiary,
                 ),
             ],
           ),
@@ -217,3 +101,101 @@ class DeviceCard extends StatelessWidget {
     );
   }
 }
+
+/// The model name, status dot, version chips and last-seen line.
+class _DeviceDetails extends StatelessWidget {
+  const _DeviceDetails({required this.installation, required this.isOutdated});
+
+  final InstallationModel installation;
+  final bool isOutdated;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                installation.deviceModel,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: GlassPalette.textPrimary,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(left: 8),
+              width: 9,
+              height: 9,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: installation.hasFcmToken
+                    ? GlassPalette.iosGreen
+                    : GlassPalette.iosGray,
+                boxShadow: installation.hasFcmToken
+                    ? <BoxShadow>[
+                        BoxShadow(
+                          color:
+                              GlassPalette.iosGreen.withValues(alpha: 0.5),
+                          blurRadius: 6,
+                          spreadRadius: 0.5,
+                        ),
+                      ]
+                    : null,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 7),
+        Row(
+          children: <Widget>[
+            Flexible(
+              child: GlassChip(
+                label: installation.androidVersion,
+                textColor: GlassPalette.textSecondary,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: GlassChip(
+                label: 'v${installation.appVersion}',
+                icon: isOutdated ? Icons.warning_amber_rounded : null,
+                color: isOutdated ? const Color(0x33F59E0B) : GlassTints.chip,
+                iconColor: GlassPalette.amber,
+                textColor: isOutdated
+                    ? const Color(0xFFF3C77B)
+                    : GlassPalette.textSecondary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: <Widget>[
+            const Icon(
+              Icons.access_time_rounded,
+              size: 13,
+              color: GlassPalette.textTertiary,
+            ),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                'Last seen ${installation.lastSeenFormatted}',
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: GlassPalette.textTertiary,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+

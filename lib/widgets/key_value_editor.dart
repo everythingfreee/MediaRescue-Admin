@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
+import '../theme/glass_theme.dart';
 
 class KeyValueEditorWidget extends StatefulWidget {
   final Map<String, String> dataPayload;
@@ -41,98 +43,100 @@ class _KeyValueEditorWidgetState extends State<KeyValueEditorWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
+      children: <Widget>[
+        const Text(
           'Custom Key-Value Data Payload (FCM Data)',
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
+          style: TextStyle(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w700,
+            color: GlassPalette.textPrimary,
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          'Pass custom data properties to client application (e.g., action: update_alert)',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        const Text(
+          'Pass custom data properties to client application '
+          '(e.g., action: update_alert)',
+          style: TextStyle(
+            fontSize: 11.5,
+            height: 1.35,
+            color: GlassPalette.textTertiary,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
 
-        // Input Fields Row
         Row(
-          children: [
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: <Widget>[
             Expanded(
-              child: TextField(
+              child: GlassField(
                 controller: _keyController,
-                decoration: const InputDecoration(
-                  labelText: 'Key',
-                  hintText: 'e.g., action',
-                  isDense: true,
-                  border: OutlineInputBorder(),
-                ),
+                label: 'Key',
+                hint: 'action',
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: TextField(
+              child: GlassField(
                 controller: _valueController,
-                decoration: const InputDecoration(
-                  labelText: 'Value',
-                  hintText: 'e.g., update_alert',
-                  isDense: true,
-                  border: OutlineInputBorder(),
-                ),
+                label: 'Value',
+                hint: 'update_alert',
               ),
             ),
             const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: _handleAdd,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 1),
+              child: LiquidGlassButton(
+                icon: Icons.add_rounded,
+                height: 46,
+                width: 54,
+                padding: EdgeInsets.zero,
+                iconSize: 20,
+                touch: const LiquidGlassTouch.flexing(LiquidGlassFlex.subtle()),
+                style: LiquidGlassButton.defaultStyle.copyWith(
+                  appearance: const LiquidGlassAppearance(
+                    color: GlassTints.accentBlue,
+                    // blur: LiquidGlassBlur(sigmaX: 3, sigmaY: 3),
+                  ),
+                ),
+                onPressed: _handleAdd,
               ),
-              child: const Icon(Icons.add_rounded),
             ),
           ],
         ),
+        const SizedBox(height: 14),
 
-        const SizedBox(height: 12),
-
-        // Added Key-Value Chips
         if (widget.dataPayload.isNotEmpty)
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: widget.dataPayload.entries.map((entry) {
-              return Chip(
-                avatar: Icon(Icons.data_object_rounded, size: 16, color: theme.colorScheme.primary),
-                label: Text(
-                  '${entry.key}: "${entry.value}"',
-                  style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                deleteIcon: const Icon(Icons.cancel_rounded, size: 18),
-                onDeleted: () {
+              return GlassChip(
+                label: '${entry.key}: "${entry.value}"',
+                icon: Icons.cancel_rounded,
+                iconColor: GlassPalette.textTertiary,
+                color: GlassTints.selected,
+                textColor: GlassPalette.textPrimary,
+                padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
+                onTap: () {
                   HapticFeedback.lightImpact();
                   widget.onRemoveKey(entry.key);
                 },
-                backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
               );
             }).toList(),
           )
         else
-          Text(
+          const Text(
             'No key-value pairs added',
-            style: theme.textTheme.bodySmall?.copyWith(
+            style: TextStyle(
+              fontSize: 11.5,
               fontStyle: FontStyle.italic,
-              color: theme.colorScheme.onSurfaceVariant,
+              color: GlassPalette.textTertiary,
             ),
           ),
       ],
     );
   }
 }
+

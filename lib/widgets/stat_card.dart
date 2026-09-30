@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
+import '../theme/glass_theme.dart';
 
+/// A summary metric on a real sheet of liquid glass: the glass refracts the
+/// page behind it and — because it carries a touch spec — gently deforms
+/// under a finger.
 class StatCard extends StatelessWidget {
   final String title;
   final String value;
@@ -19,58 +24,65 @@ class StatCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext me) {
-    final theme = Theme.of(me);
-
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.2)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
+  Widget build(BuildContext context) {
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
+      touch: const LiquidGlassTouch.flexing(LiquidGlassFlex.subtle()),
+      style: backgroundColor == null
+          ? GlassStyles.card
+          : GlassStyles.card.copyWith(
+              appearance: GlassStyles.card.appearance.copyWith(
+                color: backgroundColor,
+              ),
+            ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Expanded(
+                child: Text(
                   title,
-                  style: theme.textTheme.titleMedium?.copyWith(
+                  style: const TextStyle(
+                    fontSize: 13.5,
                     fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurfaceVariant,
+                    color: GlassPalette.textTertiary,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: iconColor, size: 24),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              value,
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface,
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+              const SizedBox(width: 10),
+              // The metric's glyph in its own little tinted sheet.
+              GlassLiteSurface(
+                shape: GlassStyles.liteChipShape,
+                color: iconColor.withValues(alpha: 0.20),
+                padding: const EdgeInsets.all(10),
+                child: Icon(icon, color: iconColor, size: 22),
               ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.8,
+              color: GlassPalette.textPrimary,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              fontSize: 11.5,
+              height: 1.3,
+              color: Color(0x99FFFFFF),
+            ),
+          ),
+        ],
       ),
     );
   }
